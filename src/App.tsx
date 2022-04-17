@@ -1,110 +1,103 @@
-import React, {
-  Component,
-  FC,
-  ReactNode,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import logo from "./logo.svg";
+import { motion } from "framer-motion";
+import { FC } from "react";
 import "./App.css";
-import styled from "@emotion/styled";
-import { AnimatePresence, motion } from "framer-motion";
-import { Property } from "csstype";
 
 type Props = {
-  width: number;
-  height: number;
-  color: Property.Color;
-};
-const Strut = styled(motion.div)<Props>(({ width, height, color }) => ({
-  backgroundColor: color,
-  boxSizing: "border-box",
-  // border: "5px solid teal",
-  width,
-  height,
-}));
-
-const Recurse = ({
-  Component,
-  depth,
-}: {
-  Component: (props: {
-    children: React.ReactNode;
-    depth: number;
-  }) => JSX.Element;
-  depth: number;
-}) => {
-  return (
-    <Component depth={depth}>
-      {depth > 1 && <Recurse Component={Component} depth={depth - 1} />}
-    </Component>
-  );
+  maxDepth: number;
+  depth?: number;
+  isSplitting?: 0 | -1 | 1;
 };
 
-const App = () => {
+const size = 20;
+
+const Strut: FC<Props> = ({ depth = 1, maxDepth, isSplitting = 0 }) => {
+  const ratio = Math.pow(0.98, depth);
+  const shouldSplit = depth % 8 === 1;
+
   return (
-    <div className="App">
-      <header className="App-header">
+    <motion.div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        position: "absolute",
+        width: size * ratio,
+        height: size * ratio * 1.5,
+        backgroundColor: hsl(depth * 3, 50, 50),
+        borderRadius: (size / 2) * ratio,
+      }}
+      variants={{
+        on: () => ({
+          y: size * ratio,
+          rotate: isSplitting * 60 + Math.floor(Math.random() * 3) * 30 - 30,
+          transition: {
+            type: "spring",
+            bounce: 1,
+            damping: 10,
+            delayChildren: 0.02 + isSplitting * 0.2,
+          },
+        }),
+        chill: {
+          transition: {
+            delayChildren: 0.1 + isSplitting * 0.15,
+            type: "spring",
+            mass: 10,
+          },
+          rotate: isSplitting * 10 + Math.floor(Math.random() * 3) * 5 - 5,
+        },
+      }}
+    >
+      {depth <= maxDepth && (
         <Strut
-          color="hotpink"
-          variants={{
-            on: {},
-          }}
-          whileHover="on"
-          width={60}
-          height={200}
-        >
-          <Recurse
-            Component={({
-              children,
-              depth,
-            }: {
-              children: ReactNode;
-              depth: number;
-            }) => (
-              <Strut
-                width={50}
-                height={50}
-                color="honeydew"
-                initial={{ x: -50, width: "99%", height: "90%" }}
-                custom={depth}
-                variants={{
-                  on: (i) => ({
-                    y: 5 * (10 - i),
-
-                    transition: {
-                      delay: 0.03 * i,
-                    },
-                  }),
-                }}
-              >
-                {children}
-              </Strut>
-            )}
-            depth={10}
-          />
-        </Strut>
-      </header>
-    </div>
+          depth={depth + 1}
+          maxDepth={maxDepth}
+          isSplitting={shouldSplit ? 1 : 0}
+        />
+      )}
+      {depth <= maxDepth && shouldSplit && (
+        <Strut
+          depth={depth + 1}
+          maxDepth={maxDepth}
+          isSplitting={shouldSplit ? -1 : 0}
+        />
+      )}
+    </motion.div>
   );
 };
+
+const App = () => (
+  <div className="App">
+    <motion.div
+      style={{
+        position: "relative",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        width: size * 2,
+        height: size * 2,
+        backgroundColor: "hsl(0, 50%, 50%)",
+        borderRadius: 5,
+      }}
+      variants={{
+        on: {
+          y: 10,
+          width: size * 1.5,
+          height: size * 3,
+          borderRadius: 25,
+          transition: {
+            type: "spring",
+          },
+        },
+      }}
+      whileHover="on"
+      whileTap="chill"
+    >
+      <Strut maxDepth={31} />
+    </motion.div>
+  </div>
+);
 
 export default App;
-// function useToggleInterval(interval: number) {
-//   const [on, setOn] = useState(true);
-//   const [last, setLast] = useState(Date.now());
-//   useEffect(() => {
-//     const id = setInterval(() => {
-//       if (Date.now() > last + interval) {
-//         console.log(last);
-//         setOn((prev) => !prev);
-//         setLast(Date.now());
-//       }
-//     }, 100);
-//     () => clearInterval(id);
-//   }, []);
 
-//   return on;
-// }
+const hsl = (h: number, s: number, l: number, a = 1) =>
+  `hsl(${h}, ${s}%, ${l}%, ${a})`;
