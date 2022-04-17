@@ -16,8 +16,8 @@ const Strut: FC<Props> = ({ depth = 1, maxDepth, isSplitting = 0 }) => {
 
   return (
     <motion.div
+      custom={depth}
       style={{
-        display: "flex",
         alignItems: "center",
         justifyContent: "center",
         position: "absolute",
@@ -26,8 +26,27 @@ const Strut: FC<Props> = ({ depth = 1, maxDepth, isSplitting = 0 }) => {
         backgroundColor: hsl(depth * 3, 50, 50),
         borderRadius: (size / 2) * ratio,
       }}
+      initial={{
+        display: "none",
+        boxShadow: "0",
+      }}
       variants={{
+        vibe: (i) => ({
+          x: [1, -1, 1],
+          transition: {
+            duration: 1 + Math.random() * 1,
+            repeat: 100,
+            delay: i * 0.1 + Math.random() * 0.1,
+          },
+        }),
         on: () => ({
+          boxShadow:
+            depth > 25
+              ? `0px 0px ${depth / 2}px ${hsl(depth * 3, 50, 50)}`
+              : "0",
+
+          display: "flex",
+          originY: 0,
           y: size * ratio,
           rotate: isSplitting * 60 + Math.floor(Math.random() * 3) * 30 - 30,
           transition: {
@@ -61,6 +80,20 @@ const Strut: FC<Props> = ({ depth = 1, maxDepth, isSplitting = 0 }) => {
           isSplitting={shouldSplit ? -1 : 0}
         />
       )}
+      {depth > maxDepth - 9 && shouldSplit && (
+        <>
+          <Strut
+            depth={depth + 1}
+            maxDepth={maxDepth}
+            isSplitting={shouldSplit ? -1 : 0}
+          />
+          <Strut
+            depth={depth + 1}
+            maxDepth={maxDepth}
+            isSplitting={shouldSplit ? -1 : 0}
+          />
+        </>
+      )}
     </motion.div>
   );
 };
@@ -89,7 +122,7 @@ const App = () => (
           },
         },
       }}
-      whileHover="on"
+      whileHover={["on", "vibe"]}
       whileTap="chill"
     >
       <Strut maxDepth={31} />
