@@ -1,136 +1,55 @@
 import { motion } from "framer-motion";
-import { FC } from "react";
+import { useState } from "react";
 import "./App.css";
+import { size, Strut } from "./Strut";
 
-type Props = {
-  maxDepth: number;
-  depth?: number;
-  isSplitting?: 0 | -1 | 1;
-};
+const App = () => {
+  const [vari, setVari] = useState<any>("");
 
-const size = 20;
+  const turnOn = (e: any) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setVari(["on", "vibe"]);
+  };
 
-const Strut: FC<Props> = ({ depth = 1, maxDepth, isSplitting = 0 }) => {
-  const ratio = Math.pow(0.98, depth);
-  const shouldSplit = depth % 8 === 1;
+  const turnOff = () => {
+    setVari([]);
+  };
 
   return (
-    <motion.div
-      custom={depth}
-      style={{
-        alignItems: "center",
-        justifyContent: "center",
-        position: "absolute",
-        width: size * ratio,
-        height: size * ratio * 1.5,
-        backgroundColor: hsl(depth * 3, 50, 50),
-        borderRadius: (size / 2) * ratio,
-      }}
-      initial={{
-        display: "none",
-        boxShadow: "0",
-      }}
-      variants={{
-        vibe: (i) => ({
-          x: [1, -1, 1],
-          transition: {
-            duration: 1 + Math.random() * 1,
-            repeat: 100,
-            delay: i * 0.1 + Math.random() * 0.1,
-          },
-        }),
-        on: () => ({
-          boxShadow:
-            depth > 25
-              ? `0px 0px ${depth / 2}px ${hsl(depth * 3, 50, 50)}`
-              : "0",
-
+    <div onClick={turnOff} className="App">
+      <motion.div
+        style={{
+          position: "relative",
           display: "flex",
-          originY: 0,
-          y: size * ratio,
-          rotate: isSplitting * 60 + Math.floor(Math.random() * 3) * 30 - 30,
-          transition: {
-            type: "spring",
-            bounce: 1,
-            damping: 10,
-            delayChildren: 0.02 + isSplitting * 0.2,
+          alignItems: "center",
+          justifyContent: "center",
+          width: size * 2,
+          height: size * 2,
+          backgroundColor: "hsl(0, 50%, 50%)",
+          borderRadius: 5,
+        }}
+        variants={{
+          on: {
+            y: 10,
+            width: size * 1.5,
+            height: size * 3,
+            borderRadius: 25,
+            transition: {
+              type: "spring",
+            },
           },
-        }),
-        chill: {
-          transition: {
-            delayChildren: 0.1 + isSplitting * 0.15,
-            type: "spring",
-            mass: 10,
-          },
-          rotate: isSplitting * 10 + Math.floor(Math.random() * 3) * 5 - 5,
-        },
-      }}
-    >
-      {depth <= maxDepth && (
-        <Strut
-          depth={depth + 1}
-          maxDepth={maxDepth}
-          isSplitting={shouldSplit ? 1 : 0}
-        />
-      )}
-      {depth <= maxDepth && shouldSplit && (
-        <Strut
-          depth={depth + 1}
-          maxDepth={maxDepth}
-          isSplitting={shouldSplit ? -1 : 0}
-        />
-      )}
-      {depth > maxDepth - 9 && shouldSplit && (
-        <>
-          <Strut
-            depth={depth + 1}
-            maxDepth={maxDepth}
-            isSplitting={shouldSplit ? -1 : 0}
-          />
-          <Strut
-            depth={depth + 1}
-            maxDepth={maxDepth}
-            isSplitting={shouldSplit ? -1 : 0}
-          />
-        </>
-      )}
-    </motion.div>
+        }}
+        onClick={turnOn}
+        onHoverEnd={turnOff}
+        onHoverStart={turnOn}
+        animate={vari}
+        whileTap="chill"
+      >
+        <Strut maxDepth={31} />
+      </motion.div>
+    </div>
   );
 };
 
-const App = () => (
-  <div className="App">
-    <motion.div
-      style={{
-        position: "relative",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        width: size * 2,
-        height: size * 2,
-        backgroundColor: "hsl(0, 50%, 50%)",
-        borderRadius: 5,
-      }}
-      variants={{
-        on: {
-          y: 10,
-          width: size * 1.5,
-          height: size * 3,
-          borderRadius: 25,
-          transition: {
-            type: "spring",
-          },
-        },
-      }}
-      whileHover={["on", "vibe"]}
-      whileTap="chill"
-    >
-      <Strut maxDepth={31} />
-    </motion.div>
-  </div>
-);
-
 export default App;
-
-const hsl = (h: number, s: number, l: number, a = 1) =>
-  `hsl(${h}, ${s}%, ${l}%, ${a})`;
